@@ -1,0 +1,32 @@
+#!/bin/bash
+
+yum update -y
+yum install -y httpd
+amazon-linux-extras enable php7.4
+yum clean metadata 
+yum install -y php php-common php-pear 
+yum install -y php-{cgi,curl,mbstring,gd,mysqlnd,gettext,json,xml,fpm,intl,zip} 
+systemctl start httpd
+systemctl enable httpd
+
+# Create the PHP home page
+
+cat << 'EOF' >/var/www/html/index.php
+<!DOCTYPE html>
+<html>
+<body>
+<center>
+<?php 
+$host_name = file_get_contents("http://169.254.169.254/latest/meta-data/hostname");
+$public_ip = file_get_contents("http://169.254.169.254/latest/meta-data/public-ipv4");
+$instance_id = file_get_contents("http://169.254.169.254/latest/meta-data/instance-id");
+$az = file_get_contents("http://169.254.169.254/latest/meta-data/placement/availability-zone");
+?>
+<h1>Welcome to: <?php echo $host_name ?></h1>
+<h2>Public IP: <?php echo $public_ip ?></h2>
+<h2>Instance ID: <?php echo $instance_id ?></h2>
+<h2>Availability Zone: <?php echo $az ?></h2>
+</center>
+</body>
+</html>
+EOF
